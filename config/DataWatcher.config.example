@@ -1,0 +1,34 @@
+# Configuration file for DataSet Watcher
+
+MyName=DataWatcher
+PGHost=localhost
+PGDBName=DataWatcherTest
+PGUser=postgres
+PGPwd=postgres
+
+Query=LogosTest
+Query=EROLRecords
+
+#####################################
+# How we will connect to the database
+#####################################
+
+LogosTestSQL=SELECT * FROM Logos_Test
+LogosTestSourceConn=Driver^={Microsoft Access Driver (*.mdb)};Dbq^=C:\Python\DataWatcher\Example\Example.mdb;Uid^=Admin;Pwd^=;
+LogosTestDestTable=Logos_Test
+LogosTestUniqueKey=ID
+
+EROLRecordsSQL=SELECT * FROM EROL
+EROLRecordsSourceDB=Driver^={Microsoft Access Driver (*.mdb)};Dbq^=D:\Astun\Workshop\Astun\Source Data\Workshop.mdb;Uid^=Admin;Pwd^=;
+EROLRecordsDest=EROL
+EROLRecordsUniqueKey=EROL_ID
+
+####################################
+# Email Settings
+####################################
+#Email details
+SMTPServer=mail.company.com
+SMTPFrom=DataSetWatcher
+SMTPTo=someone@company.com
+SMTPCC=someoneelse@bcompany.com
+SMTPSubject=DataSetWatcher
