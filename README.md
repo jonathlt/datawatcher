@@ -5,7 +5,7 @@
 
 This software will help you keep an eye on back office databases where addresses change and you don't get told about them!
 
-To learn more goto The Data Watcher Project web site
+To learn more goto [The Data Watcher Project web site](https://sites.google.com/site/datawatcherproject/)
 
 # Key Benefits:
 
