@@ -39,50 +39,13 @@ from email import Encoders
 # Import our stuff
 from Config import GetValue
 
-
-#####
-# To send a mail message
-###
-def mail( serverURL, sender, to, subject, text, Out ):
-  """
-  Usage:
-  mail('somemailserver.com', 'me@example.com', 'someone@example.com', 'test', 'This is a test')
-  """
-  
-  if serverURL == None or serverURL == '':
-    Out.OutputInfo( 'No Server to use to send the message' )
-  else:
-    try:
-      # Header
-      headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % ( sender, to, subject )
-      
-      # Message - which has the header and the body of the test
-      message = headers + text
-      
-      # Perform the actual sending
-      mailServer = smtplib.SMTP( serverURL )
-      mailServer.sendmail( sender, to, message )
-      mailServer.quit( )
-    
-    except KeyboardInterrupt:
-      Out.OutputError( 'Keyboard interrupt detected', False )
-      raise
-    
-    except:
-      Out.OutputError( 'Attempting to send SMTP message', True )
-      Out.OutputException( sys.exc_info( ), True )
-  
-  return
-#####
-
-
 #####
 # To send a mail message
 # 
 # Original from Jordon Mears
 # http://www.finefrog.com/2008/05/06/sending-email-with-attachments-in-python/
 ###
-def send_mail( send_to, message_subject, message_text, Out, message_html = "", send_from = "", files = [], send_cc = [], send_bcc = [], mail_server = "localhost" ):
+def send_mail( send_to, message_subject, message_text, Out, message_html = "", send_from = "", files = [], send_cc = [], send_bcc = [], mail_server = "localhost", smtp_user = "", smtp_password = "" ):
   try:
     # Assertions
     assert type( send_to ) == list
@@ -118,9 +81,15 @@ def send_mail( send_to, message_subject, message_text, Out, message_html = "", s
     
     # Now send it
     if ( len( addresses ) > 0 ):
-      smtp = smtplib.SMTP( mail_server )
-      smtp.sendmail( send_from, addresses, message.as_string( ) )
-      smtp.close( )
+      Out.OutputInfo('Sending from send_mail function')
+      #smtp = smtplib.SMTP( mail_server )
+      #smtp.sendmail( send_from, addresses, message.as_string( ) )
+      #smtp.close( )
+      mailServer = smtplib.SMTP_SSL( mail_server , 465)
+      mailServer.ehlo()
+      mailServer.login(smtp_user, smtp_password)	  
+      mailServer.sendmail( send_from, send_to, message.as_string() )
+      mailServer.close( )
     else:
       Out.OutputError( 'No addressees to send the e-mail to', True )
   
@@ -133,89 +102,4 @@ def send_mail( send_to, message_subject, message_text, Out, message_html = "", s
     Out.OutputException( sys.exc_info( ), True )
   
   return
-#####
-
-
-#####
-# To send a mail message
-###
-def SendMailMessageSimple1( sFilename, sAdditional, Out ):
-  # Use the main function
-  SendMailMessageFull( sFilename, '', '', sAdditional, '', Out )
-  return
-#####
-
-
-#####
-# To send a mail message
-###
-def SendMailMessageSimple2( sFilename, sBody, sAdditional, Out ):
-  # Use the main function
-  SendMailMessageFull( sFilename, '', sBody, sAdditional, '', Out )
-  return
-#####
-
-
-#####
-# To send a mail message
-###
-def SendMailMessageFull( sFilename, sSubject, sBody, sAdditional, sCC, Out, bIncludeError = True ):
-  """To send a message with a specific subject overide"""
-  # Get the various values that we need
-  sServer = GetValue( sFilename, 'SMTPServer', Out )
-  
-  if ( sServer <> '' ):
-    sMyName = GetValue( sFilename, 'MyName',      Out )
-    sTo     = GetValue( sFilename, 'SMTPTo',      Out )
-    sFrom   = GetValue( sFilename, 'SMTPFrom',    Out )
-    
-    # Do we override the body
-    if ( sBody == '' ):
-      sBody = GetValue( sFilename, 'SMTPBody', Out )
-    
-    # Do we override the subject
-    if ( sSubject == '' ):
-      sSubject = GetValue( sFilename, 'SMTPSubject', Out )
-    
-    # Info messages
-    Out.OutputInfo( 'Sending e-mail to: ' + sTo + '...' )
-    if ( len( sCC ) > 0 ):
-      Out.OutputInfo( '... cc: ' + sCC + '...' )
-    Out.OutputInfo( '... regarding ' + sSubject + '...' )
-    Out.OutputInfo( '... ' + sAdditional )
-          
-    # Any Error Message
-    sErrorMsg = ''
-    if ( bIncludeError == True ):
-      sErrorMsg = Out.GetErrorMessage( )
-    
-    # Build the body of the message
-    dtNow = datetime.datetime.now( )
-    sMessageBody = dtNow.strftime( "%a, %d %b %Y %H:%M" ) + '\n\n'
-    if ( sMyName <> '' ):
-      sMessageBody += 'Name: ' + sMyName + '\n\n'
-    if ( sBody <> '' and sBody <> ' ' ):
-      sMessageBody += sBody + '\n\n'
-    if ( sAdditional <> '' ):
-      sMessageBody += sAdditional + '\n\n'
-    if ( sErrorMsg <> '' ):
-      sMessageBody += sErrorMsg + '\n\nPlease see the log for more details.'
-    
-    # Make the lists
-    if ( len( sTo ) > 0 and sTo <> '' ):
-      lTo = sTo.split( ',' )
-    else:
-      lTo = []
-    if ( len( sCC ) > 0 and sCC <> '' ):
-      lCC = sCC.split( ',' )
-    else:
-      lCC = []
-      
-    # Do the mail thang
-    send_mail( send_to = lTo, send_cc = lCC, message_subject = sSubject, message_text = sMessageBody, send_from = sFrom, mail_server = sServer, Out = Out )
-  else:
-    # Indicate we couldn't send
-    Out.OutputInfo( 'No configuration for SendMail' )
-    
-    return
 #####

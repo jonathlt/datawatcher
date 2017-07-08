@@ -21,7 +21,7 @@
 ### DataWatcher.py - Main Process for the DataWatcher process
 
 # Import Astun Stuff
-from SendMail  import SendMailMessageSimple1
+#from SendMail  import SendMailMessageSimple1
 from SendMail  import send_mail
 import Output
 import Config
@@ -31,10 +31,7 @@ import Data
 import sys
 import datetime
 
-# 4suite XML
-from Ft.Xml.Xslt import Processor
-from Ft.Xml import InputSource
-from Ft.Lib.Uri import OsPathToUri
+import lxml.etree as ET
 
 class DataWatcher:
  #####
@@ -74,17 +71,12 @@ class DataWatcher:
     
     try:
     
-      processor = Processor.Processor()
-    
-      srcAsUri = OsPathToUri(xmlFile)
-      source = InputSource.DefaultFactory.fromUri(srcAsUri)
-    
-      ssAsUri = OsPathToUri(xslFile)
-      transform = InputSource.DefaultFactory.fromUri(ssAsUri)
-    
-      processor.appendStylesheet(transform)
-    
-      result = processor.run(source)
+      dom = ET.parse(xmlFile)
+      xslt = ET.parse(xslFile)
+      transform = ET.XSLT(xslt)
+      newdom = transform(dom)
+	  
+      result = ET.tostring(newdom, pretty_print=True)
     
     except:
       self._Out.OutputError( 'On performing the xsl transform', True )
@@ -124,6 +116,9 @@ class DataWatcher:
      
       sBody   = Config.GetValue( sFilename, 'SMTPBody', self._Out )
       sSubject= Config.GetValue( sFilename, 'SMTPSubject', self._Out )
+	  
+      sSMTPUser = Config.GetValue( sFilename, 'SMTPUser', self._Out )
+      sSMTPPassword = Config.GetValue ( sFilename, 'SMTPPass', self._Out)
         
       # Info messages
       self._Out.OutputInfo( 'Sending e-mail to: ' + sTo + '...' )
@@ -160,7 +155,7 @@ class DataWatcher:
         lCC = []
           
       # Do the mail thang
-      send_mail( send_to = lTo, send_cc = lCC, message_subject = sSubject, message_text = sMessageBody, send_from = sFrom, mail_server = sServer, Out = self._Out, files = ["results.html"])
+      send_mail( send_to = lTo, send_cc = lCC, message_subject = sSubject, message_text = sMessageBody, send_from = sFrom, mail_server = sServer, Out = self._Out, files = ["results.html"], smtp_user = sSMTPUser, smtp_password = sSMTPPassword)
     else:
       # Indicate we couldn't send
       self._Out.OutputInfo( 'No configuration for SendMail' )
